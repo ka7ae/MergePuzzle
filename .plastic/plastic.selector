@@ -1,0 +1,4 @@
+repository "MergePuzzle@Sugar_st@cloud"
+  path "/"
+    br "/main"
+    co "/main"
