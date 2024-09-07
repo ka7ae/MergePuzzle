@@ -23,6 +23,7 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     //Audio
     [SerializeField] AudioClip seDrop;
     [SerializeField] AudioClip seMerge;
+    [SerializeField] AudioClip RankingAudio;
 
     //score
     public  int score;
@@ -152,15 +153,15 @@ public class MergePuzzleSceneDirector : MonoBehaviour
             PanelResult.SetActive(true);
 
 
-
             Thread.Sleep(500);
 
             //Ranking‰æ–Ê•\Ž¦
             Ranking.SetActive(true);
+            audioSource.PlayOneShot(RankingAudio);
 
             RequestLeaderBoard();
 
-            MyTextScore.text = score.ToString();
+            MyTextScore.text =  score.ToString();
 
             return;
         }
