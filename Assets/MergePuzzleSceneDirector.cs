@@ -1,9 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using System.Threading;
+//using System.Diagnostics;
+using PlayFab;
+using PlayFab.ClientModels;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;  // Textコンポーネント用
 
 
 public class MergePuzzleSceneDirector : MonoBehaviour
@@ -12,13 +18,16 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     [SerializeField] List<BubbleController> prefabBubbles;
     //UI
     [SerializeField] TextMeshProUGUI textScore;
-    [SerializeField] GameObject panelResult;
+    [SerializeField] GameObject PanelResult;
+    [SerializeField] GameObject Ranking;
     //Audio
     [SerializeField] AudioClip seDrop;
     [SerializeField] AudioClip seMerge;
 
     //score
-    int score;
+    public  int score;
+    //loginID
+    private string _customID;
     //現在のアイテム
     BubbleController currentBubble;
     //生成位置
@@ -26,17 +35,38 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     //Audio再生装置
     AudioSource audioSource;
 
+    public Text leaderboardText;  // UnityのInspectorからTextをアタッチ
+    const string STATISTICS_NAME = "HighScore";
+
+    public Text MyTextScore;
+
+
     // Start is called before the first frame update
     void Start()
     {
+            
+        _customID = GenerateCustomID();
+        Debug.Log("customId" + _customID);
+
+        PlayFabClientAPI.LoginWithCustomID(
+        new LoginWithCustomIDRequest { CustomId = _customID, CreateAccount = true },
+        result => Debug.Log("ログイン成功！"),
+        error => Debug.Log("ログイン失敗"));
+
         //サウンド再生用
         audioSource = GetComponent<AudioSource>();
         //リザルト画面非表示
-        panelResult.SetActive(false);
+        PanelResult.SetActive(false);
+        //Ranking画面非表示
+        Ranking.SetActive(false);
+
+
 
         //最初のアイテムを生成
         //IEnumeratorを呼び出すのはStartCoroutineを使う　これはセットで覚えておくとよき
         StartCoroutine(SpawnCurrentItem());
+
+
     }
 
     // Update is called once per frame
@@ -111,11 +141,26 @@ public class MergePuzzleSceneDirector : MonoBehaviour
 
         //操作中のアイテムとぶつかったらゲームオーバー
         if(currentBubble == bubbleA || currentBubble == bubbleB) // || = or
-        {
-            //このUpdateに入らないようにする
+        {   
+            Debug.Log("score" + score);
+            SubmitScore(score);
+
+             //このUpdateに入らないようにする
             enabled = false;
+
             //リザルトパネル表示
-            panelResult.SetActive(true);
+            PanelResult.SetActive(true);
+
+
+
+            Thread.Sleep(500);
+
+            //Ranking画面表示
+            Ranking.SetActive(true);
+
+            RequestLeaderBoard();
+
+            MyTextScore.text = score.ToString();
 
             return;
         }
@@ -159,5 +204,84 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     {
         SceneManager.LoadScene("MergePuzzleScene");
     }
+
+    //スコア提出
+    void SubmitScore(int playerScore)
+    {
+        PlayFabClientAPI.UpdatePlayerStatistics(
+            new UpdatePlayerStatisticsRequest
+            {
+                Statistics = new List<StatisticUpdate>()
+                {
+                    new StatisticUpdate
+                    {
+                        StatisticName = STATISTICS_NAME,
+                        Value = playerScore
+                    }
+                }
+            },
+            result =>
+            {
+                Debug.Log("スコア送信");
+            },
+            error =>
+            {
+                Debug.Log(error.GenerateErrorReport());
+            }
+        );
+    }
+
+    //スコアを取得
+    void RequestLeaderBoard()
+    {
+        PlayFabClientAPI.GetLeaderboard(
+            new GetLeaderboardRequest
+            {
+                StatisticName = STATISTICS_NAME,
+                StartPosition = 0,
+                MaxResultsCount = 5
+            },
+            result =>
+            {
+                string leaderboardOutput = "";
+                result.Leaderboard.ForEach(
+                    x => leaderboardOutput += string.Format("{0}: {1} \r\n", x.Position + 1, x.StatValue)
+                );
+
+                // リーダーボードの結果をText UIに表示
+                leaderboardText.text = leaderboardOutput;
+            },
+            error =>
+            {
+                Debug.Log(error.GenerateErrorReport());
+            }
+        );
+    }
+
+
+
+    //カスタムIDの生成
+    //=================================================================================
+
+    //IDに使用する文字
+    private static readonly string ID_CHARACTERS = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+    //IDを生成する
+    private string GenerateCustomID()
+    {
+        int idLength = 32;//IDの長さ
+        StringBuilder stringBuilder = new StringBuilder(idLength);
+        var random = new System.Random();
+
+        //ランダムにIDを生成
+        for (int i = 0; i < idLength; i++)
+        {
+            stringBuilder.Append(ID_CHARACTERS[random.Next(ID_CHARACTERS.Length)]);
+        }
+
+        return stringBuilder.ToString();
+    }
+
+
 
 }
