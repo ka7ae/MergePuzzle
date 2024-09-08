@@ -19,6 +19,8 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     [SerializeField] TextMeshProUGUI textScore;
     [SerializeField] GameObject PanelResult;
     [SerializeField] GameObject Ranking;
+    [SerializeField] GameObject Top;
+    [SerializeField] GameObject Canvas;
     //Audio
     [SerializeField] AudioClip seDrop;
     [SerializeField] AudioClip seMerge;
@@ -41,6 +43,8 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     public Text MyTextScore;
 
 
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -55,6 +59,8 @@ public class MergePuzzleSceneDirector : MonoBehaviour
 
         //サウンド再生用
         audioSource = GetComponent<AudioSource>();
+        
+        Canvas.SetActive(false);
         //リザルト画面非表示
         PanelResult.SetActive(false);
         //Ranking画面非表示
@@ -62,9 +68,10 @@ public class MergePuzzleSceneDirector : MonoBehaviour
 
 
 
+
         //最初のアイテムを生成
         //IEnumeratorを呼び出すのはStartCoroutineを使う　これはセットで覚えておくとよき
-        StartCoroutine(SpawnCurrentItem());
+        //StartCoroutine(SpawnCurrentItem());
 
 
     }
@@ -95,6 +102,23 @@ public class MergePuzzleSceneDirector : MonoBehaviour
             audioSource.PlayOneShot(seDrop);
         }
     }
+
+
+
+    //StartButton
+    public void OnClickStart()
+    {
+        //SceneManager.LoadScene("MergePuzzleScene");
+
+        Top.SetActive(false);
+        Canvas.SetActive(true);
+        //最初のアイテムを生成
+        //IEnumeratorを呼び出すのはStartCoroutineを使う　これはセットで覚えておくとよき
+        StartCoroutine(SpawnCurrentItem());
+        
+
+    }
+
 
 
 
