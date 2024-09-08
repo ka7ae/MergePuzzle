@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
-//using System.Diagnostics;
 using PlayFab;
 using PlayFab.ClientModels;
 using TMPro;
@@ -143,7 +142,7 @@ public class MergePuzzleSceneDirector : MonoBehaviour
         //操作中のアイテムとぶつかったらゲームオーバー
         if(currentBubble == bubbleA || currentBubble == bubbleB) // || = or
         {   
-            Debug.Log("score" + score);
+
             SubmitScore(score);
 
              //このUpdateに入らないようにする
@@ -153,7 +152,7 @@ public class MergePuzzleSceneDirector : MonoBehaviour
             PanelResult.SetActive(true);
 
 
-            Thread.Sleep(500);
+            Thread.Sleep(300);
 
             //Ranking画面表示
             Ranking.SetActive(true);
@@ -205,6 +204,7 @@ public class MergePuzzleSceneDirector : MonoBehaviour
     {
         SceneManager.LoadScene("MergePuzzleScene");
     }
+
 
     //スコア提出
     void SubmitScore(int playerScore)
